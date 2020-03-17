@@ -1,0 +1,411 @@
+---
+title: 'Milestone #6'
+author: "Cian Stryker"
+date: "3/17/2020"
+output: pdf_document
+---
+
+\fontsize{10}{18}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Loading all libraries
+# that I'll need. 
+
+library(gt)
+library(stargazer)
+library(tidyverse)
+```
+
+```{r Loading}
+
+# My loading code. 
+
+load("~/Replication_Project/Data/kyrgyzstan.RData")
+data <- table
+
+```
+
+I will be replicating the paper "Ethnic Riots and Prosocial Behavior: Evidence from Kyrgyzstan" written by Anselm Hager, Krzysztof Krakowski, and Max Schaub.[^1] Using survey data performed in Osh, Kyrgyzstan after the 2010 ethnic riots, this paper explores the question of whether exposure to ethnic riots has a negative effect on both in and out group member prosocial behavior. Previous literature on prosocial behavior following ethnic violence suggests, intuitively, that prosocial behavior towards the aggressor group is negatively affected.[^2] This paper's results, however, supports the work of other scholars who found that prosocial behavior for both in and out groups are negatively affected. [^3] 
+
+
+[^1]: Hager, Krakowski, and Schaub 2019
+
+[^2]: Bauer et al. 2016; Horowitz 2001
+
+[^3]:Kijewski and Freitag 2018; Rohner, Thoenig, and Zilibotti 2013;
+
+
+
+The first step to understanding the data analysis performed in the following replication, is to become familiar with the event itself. The 2010 ethnic riots happened in Osh, Kyrgyzstan and were comprised of the ethnic Kyrgyz majority rioting against the ethnic Uzbek minority.[^4] The second step is to understand the author's data. They performed 1100 interviews with Uzbeks and Kyrgyz from Osh, Kyrgyzstan. View the graphic I have created below to see how the interview subjects differentiate between ethnicities, average ages, average incomes, gender, and number affected by riots.[^5]
+
+[^4]:Galdini 2014
+
+[^5]: All analysis for this paper is available here: https://github.com/CianStryker/Project_5_Milestone
+
+
+\hfill\break
+
+```{r Step 1,  include=FALSE}
+
+# I want to grab some Uzbek data
+# and show the break down. SO I 
+# essentially just keep filtering
+# and summarizing my data into different
+# groups. 
+
+uzbek <- data %>%
+  filter(ethnicity == "Uzbek") 
+uzbek_total <- uzbek %>%
+  summarize(Total = nrow(uzbek))
+uzbek_age <- uzbek %>%
+  summarize(Age = mean(age))
+uzbek_income <- uzbek %>%
+  summarize(Income = mean(income))
+
+uzbek_men <- uzbek %>%
+  filter(sex == 1) %>%
+  summarize(male = sum(sex)) %>%
+  summarize(Men = (male/878))
+
+uzbek_women <- uzbek %>%
+  filter(sex == 0) %>%
+  mutate(sex2 = sex + 1) %>%
+  summarize(female = sum(sex2)) %>%
+  summarize(Women = (female/878))
+
+uzbek_affected <- uzbek %>%
+  filter(affected == 1) %>%
+  summarize(Affected = sum(affected))
+
+uzbek_non_affected <- uzbek %>%
+  filter(affected == 0) %>%
+  mutate(affected2 = affected + 1) %>%
+  summarize(Unaffected = sum(affected2))
+
+# Then I make one big Uzbek data frame. 
+
+uzbeks <- data.frame(uzbek_total, uzbek_age, uzbek_income, uzbek_men, uzbek_women, uzbek_affected, uzbek_non_affected) 
+
+# And then I melt into the right format. 
+
+uzbeks2 <- reshape2::melt(uzbeks)
+
+```
+
+
+```{r Step 2, include=FALSE}
+
+# Same steps as before but now for Kyrgyz
+# instead of Uzbeks. 
+
+kyrgyz <- data %>%
+  filter(ethnicity == "Kyrgyz")
+
+kyrgyz_total <- kyrgyz %>%
+  summarize(Total = nrow(kyrgyz))
+
+kyrgyz_age <- kyrgyz %>%
+  summarize(Age = mean(age))
+
+kyrgyz_income <- kyrgyz %>%
+  summarize(Income = mean(income))
+
+kyrgyz_men <- kyrgyz %>%
+  filter(sex == 1) %>%
+  summarize(male = sum(sex)) %>%
+  summarize(Men = (male/222))
+
+kyrgyz_women <- kyrgyz %>%
+  filter(sex == 0) %>%
+  mutate(sex2 = sex + 1) %>%
+  summarize(female = sum(sex2)) %>%
+  summarize(Women = (female/222))
+
+kyrgyz_affected <- kyrgyz %>%
+  filter(affected == 1) %>%
+  summarize(Affected = sum(affected))
+
+kyrgyz_non_affected <- kyrgyz %>%
+  filter(affected == 0) %>%
+  mutate(affected2 = affected + 1) %>%
+  summarize(Unaffected = sum(affected2))
+
+kyrgyzz <- data.frame(kyrgyz_total, kyrgyz_age, kyrgyz_income, kyrgyz_men, kyrgyz_women, kyrgyz_affected, kyrgyz_non_affected)
+
+kyrgyz2 <- reshape2::melt(kyrgyzz)
+
+# Only unqiue code here is to create better variable names
+# for my gt table.
+
+trial <- c("Total", "Average Age", "Average Income", "Percentage Men", "Percentage Women", "Number Affected", "Number Unaffected")
+
+```
+
+```{r Table 1}
+
+# Now I mage my final data frame with 
+# both Uzbek and Kyrgyz data. 
+
+table_data <- data.frame(trial, uzbeks2, kyrgyz2)
+
+# And I use gt to make a great table with good
+# labels and that formats my numbers how I 
+# want them to be formatted. 
+
+table_data2 <- data.frame(trial, table_data) %>%
+  select(trial, value, value.1) %>%
+  gt() %>%
+  fmt_number(columns = vars("value", "value.1"),
+             decimals = 0, use_seps = TRUE) %>%
+  cols_label("trial" = " ", "value" = "Uzbeks",
+             "value.1" = "Kyrgyz") %>%
+  fmt_percent(
+              columns = c("value", "value.1"),
+              rows = c(4, 5),
+              decimals = 0,
+              drop_trailing_zeros = FALSE,
+              use_seps = TRUE,
+              pattern = "{x}",
+              sep_mark = ",",
+              dec_mark = ".",
+              incl_space = FALSE,
+              placement = "right",
+              locale = NULL) %>%
+  tab_header(
+    title = "Table 1: Summar of Survey Data",
+    subtitle = "Separated between Uzbeks and Kyrgyz"
+  ) %>%
+  cols_align(align = c("center"), columns = TRUE)
+
+```
+
+```{r Table 1 Part 2}
+
+# Print the table. 
+
+table_data2
+```
+
+\hfill\break
+
+In the authors' analyses they measure prosocial behavior by having subjects complete a prisoner's dilemma (PD) scenario and dictator’s game (DG) hypothetical to measure prosocial behavior towards both the in-group and out-group. They also create a ‘Prosociality Index’ score, which is simply a combined score of the PD and DG scores. They use these responses, which are measured numerically, to first run a series of OLS linear regressions for only Uzbeks who were affected by the riots, which is referred to as the victimization variable. They find that on average Uzbeks who were affected by the riots have lower prosocial behavior for both in and out-group members. They then run another series of regressions for affected Uzbeks, but include potential confounding variables such as wealth, state capacity of neighborhoods, community policing, accessibility, and voting record in the recent Kyrgyz election. They found, however, that only exposure to violence during the riots had consistently statistically significant effects on prosocial behavior. 
+
+The authors then want to explore an instrumental variable which was the rioter’s access to armored vehicles (APCs) to break through Uzbek barricades. During the riot, APCs were captured from the Kyrgyz military barracks by rioters to then attack Uzbek enclaves. Areas of Osh where rioters did not have access to APCs saw little to no destruction. This suggests that access to APCs might act as an exogenic assignment mechanism that explains post-riot differences across subject responses. They believe that distance to APC locations capture the ‘intent-to-treat’ effect and then create a closeness instrument by inputting subjects’ distance to APC locations. The authors run a series of new regressions where they substitute victimization for the closeness instrument and then include these regressions with their earlier, original regressions. They see both that their original results hold and that even with victimization replaced with the closeness instrument, there is still a noticeable negative effect on prosocial behavior. They follow this up with a randomization inference procedure, where they randomized potential APC locations, to see if the earlier closeness instrument effect could occur randomly. They find, however, that this is highly unlikely. 
+
+Overall the paper essentially finds that being affected by the riot causes a drop in prosocial behavior towards both the in-group and out-group. They then test the robustness of these results through potential confounding variables and an instrument variable. They find that their original findings hold throughout these robustness tests. At the end of the paper they explore why in-group prosocial behavior is negatively affected qualitatively and argue that disappointment and suspicion may explain the negatively affected in-group prosocial behavior.  
+
+\pagebreak
+
+
+\begin{center}
+ Bibliography
+\end{center}
+
+
+\begingroup
+\setlength{\parindent}{-0.2in}
+\setlength{\leftskip}{0.2in}
+\setlength{\parskip}{8pt}
+
+Bauer, Michal, Christopher Blattman, Julie Chytilova, Joseph Henrich, Edward Miguel, and Tamar Mitts. 2016. “Can War Foster Cooperation.” The Journal of Economic Perspectives 30 (3): 249–74.
+
+Galdini, Franco. 2014. “Kyrgyzstan Violence: Four Years On.” July 1, 2014.
+https://www.aljazeera.com/indepth/opinion/2014/06/kyrgyzstan-violence-2010-201463016460195835.html.
+
+Hager, Anselm, Krzysztof Krakowski, and Max Schaub. 2019. “Ethnic Riots and Prosocial Behavior: Evidence from Kyrgyzstan.” American Political Science Review 113 (4): 1029–44.
+
+Horowitz, Donald L. 2001. The Deadly Ethnic Riot. Berkelely: University of California.
+
+Kijewski, Sara, and Markus Freitag. 2018. “Civil War and the Formation of Social Trust in Kosovo: Posttraumatic Growth or War-Related Distress?” Journal of Conflict Resolution 62 (4): 717–42.
+
+Rohner, Dominic, Mathias Thoenig, and Fabrizio Zilibotti. 2013. “Seeds of Distrust: Conflict in Uganda.” Journal of Economic Growth 18 (3): 217–52.
+
+
+
+\endgroup
+
+
+\pagebreak
+
+
+\begin{center}
+ Appendix
+\end{center}
+
+\hfill\break
+
+
+```{r Starting}
+
+# Just shifting the data I  want to use later by making certain
+# columns integers, specifically the affected 
+# and prisoner dilemma columns. Oh and the affected
+# - 1 bit is to shift the binary from 1 and 0s to
+# 0 and -1s. 
+
+data$affected <- as.integer(data$affected)
+data$affected <- data$affected - 1
+data$pd_in <- as.integer(data$pd_in)
+data$pd_out <- as.integer(data$pd_out)
+```
+
+```{r Subset}
+
+# Just want to grab the data for Uzbeks
+# as opposed to including the data for Kyrgyz 
+# respondents. 
+
+data_uzbek <- data[which(data$ethnicity=="Uzbek"),]
+```
+
+```{r Scaling Time}
+
+# Here I'm followig the author's code
+# and scaling all my variables before
+# making one combined variable. 
+
+data_uzbek$pd_in_scale <- scale(data_uzbek$pd_in)
+data_uzbek$dg_in_scale <- scale(data_uzbek$dg_in)
+data_uzbek$pd_out_scale <- scale(data_uzbek$pd_out)
+data_uzbek$dg_out_scale <- scale(data_uzbek$dg_out)
+data_uzbek$cooperation_index <- rowSums(cbind(data_uzbek$pd_in_scale, 
+                                              data_uzbek$dg_in_scale, 
+                                              data_uzbek$pd_out_scale, 
+                                              data_uzbek$dg_out_scale), na.rm=T)/4
+```
+
+```{r Regressions}
+
+# Alright I totally understand what's happening here. 
+# They are just running an OLS regression on the variables
+# that they made and scaled in the last step and trying
+# to see the effect that the affected variable had on each
+# of them in turn. 
+
+model1 <- lm(pd_in_scale ~ affected, data=data_uzbek)
+model2 <- lm(dg_in_scale ~ affected, data=data_uzbek)
+model3 <- lm(pd_out_scale ~ affected, data=data_uzbek)
+model4 <- lm(dg_out_scale ~ affected, data=data_uzbek)
+model5 <- lm(cooperation_index ~ affected, data=data_uzbek)
+```
+
+                                          
+```{r Regression Extraction}
+
+# This all makes sense too. After running the regressions 
+# the authors have 5 list type data, but they need to extract 
+# the information that they want. It's kinda weird but I see that 
+# using this code they are getting the Variable, Coefficient, 
+# standard error, and name of test for each model. Cool. 
+
+model1Frame <- data.frame(Variable = rownames(summary(model1)$coef),
+                          Coefficient = summary(model1)$coef[, 1],
+                          SE = summary(model1)$coef[, 2],
+                          modelName = "Prisoner's Dilemma ingroup")[2,]
+model2Frame <- data.frame(Variable = rownames(summary(model2)$coef),
+                          Coefficient = summary(model2)$coef[, 1],
+                          SE = summary(model2)$coef[, 2],
+                          modelName = "Dictator Game ingroup")[2,]
+model3Frame <- data.frame(Variable = rownames(summary(model3)$coef),
+                          Coefficient = summary(model3)$coef[, 1],
+                          SE = summary(model3)$coef[, 2],
+                          modelName = "Prisoner's Dilemma outgroup")[2,]
+model4Frame <- data.frame(Variable = rownames(summary(model4)$coef),
+                          Coefficient = summary(model4)$coef[, 1],
+                          SE = summary(model4)$coef[, 2],
+                          modelName = "Dictator Game outgroup")[2,]
+model5Frame <- data.frame(Variable = rownames(summary(model5)$coef),
+                          Coefficient = summary(model5)$coef[, 1],
+                          SE = summary(model5)$coef[, 2],
+                          modelName = "Index")[2,]
+```
+
+```{r Tweaking?}
+
+# So now they want to put all those extracted models together
+# in one dataframe. Cool. Checks out. They're using rbind to do taht
+# giving them a numeric order, and then using factor to put them 
+# in the order that they want. Not really sure what levels() does, 
+# but it looks like it cleans up the variable names to make them 
+# easier to graph later. 
+
+
+allModelFrame <- data.frame(rbind(model1Frame, model2Frame, model3Frame, model4Frame, model5Frame))
+allModelFrame$Variable <- c(1,2,3,4, 5)
+allModelFrame$Variable <- factor(allModelFrame$Variable, 
+                                 labels=c("Prisoner's Dilemma  Ingroup", "Dictator Game  Ingroup", 
+                                          "Prisoner's Dilemma  Outgroup", "Dictator Game  Outgroup", 
+                                          "Prosociality  Index"))
+levels(allModelFrame$Variable) <- gsub("  ", "\n", levels(allModelFrame$Variable))
+```
+
+```{r Setting Confidence Intervals}
+
+# Okay so they want to set confidence intervals 
+# at 90% and 95%. Seems clear. 
+
+interval1 <- -qnorm((1-0.90)/2)  # 90% multiplier
+interval2 <- -qnorm((1-0.95)/2)  # 95% multiplier
+```
+
+```{r Colors}
+
+# They want all colors to be 00000, which is probably black right? 
+
+myColors <- c("#000000", "#000000", "#000000", "#000000", "#000000")
+```
+
+
+```{r Graphing Time}
+
+# I understand ggplot so this is cool. A bunch of detail stuff such
+# as adding a vertical dotted line at 0.00 mark. Then they make a 
+# horizontal linerange for every variable with thier ranges being
+# the SE * the confidence intervals calculated before. Then the points
+# show the mean effect which is the SE times the 95% CI with some cool
+# shapes added in for coolness. Switching up the y axis labels, setting
+# the theme, setting the colors, getting rid of the ticks, and generally
+# making things pretty. 
+
+figure5 <- ggplot(allModelFrame, aes(colour = as.factor(Variable))) + 
+  geom_hline(yintercept = 0, colour = gray(1/2), lty = 2) + 
+  geom_linerange(aes(x = Variable, 
+                     ymin = Coefficient - SE*interval1,
+                     ymax = Coefficient + SE*interval1),
+                     lwd = 1, position = position_dodge(width = 1/2)) + 
+  geom_pointrange(aes(x = Variable, y = Coefficient, 
+                      ymin = Coefficient - SE*interval2,
+                      ymax = Coefficient + SE*interval2),
+                      lwd = 1/4, position = position_dodge(width = 1/2),
+                      shape = 21, fill = "WHITE") + 
+  coord_flip(ylim = c(-0.8,0.2)) + 
+  scale_y_continuous(labels = c("-0.75", "-0.50", "-0.25", "0.00", "0.2")) +
+  theme_bw() + 
+  theme(legend.position="none") + 
+  ylab("")  + xlab("") +     
+  scale_color_manual(values=myColors) +   
+  theme(text = element_text(size=11), 
+        plot.title = element_text(size = 10, face = "bold"), 
+        plot.subtitle = element_text(size = 11, face = "italic")) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+\begin{center}
+\textbf{Figure 5. Effect of Riot on Prosocial Behavior}
+
+```{r Output, fig.align="center"}
+
+# Printing the figure.
+
+figure5
+```
+
+\end{center}
+
+\hfill\break
+
+
