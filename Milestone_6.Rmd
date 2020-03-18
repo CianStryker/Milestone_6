@@ -51,7 +51,7 @@ The first step to understanding the data analysis performed in the following rep
 
 \hfill\break
 
-```{r Step 1,  include=FALSE}
+```{r Summary Table, include=FALSE}
 
 # I want to grab some Uzbek data
 # and show the break down. SO I 
@@ -96,10 +96,6 @@ uzbeks <- data.frame(uzbek_total, uzbek_age, uzbek_income, uzbek_men, uzbek_wome
 
 uzbeks2 <- reshape2::melt(uzbeks)
 
-```
-
-
-```{r Step 2, include=FALSE}
 
 # Same steps as before but now for Kyrgyz
 # instead of Uzbeks. 
@@ -145,10 +141,6 @@ kyrgyz2 <- reshape2::melt(kyrgyzz)
 
 trial <- c("Total", "Average Age", "Average Income", "Percentage Men", "Percentage Women", "Number Affected", "Number Unaffected")
 
-```
-
-```{r Table 1}
-
 # Now I mage my final data frame with 
 # both Uzbek and Kyrgyz data. 
 
@@ -178,14 +170,14 @@ table_data2 <- data.frame(trial, table_data) %>%
               placement = "right",
               locale = NULL) %>%
   tab_header(
-    title = "Table 1: Summar of Survey Data",
+    title = "Table 1: Summary of Survey Data",
     subtitle = "Separated between Uzbeks and Kyrgyz"
   ) %>%
   cols_align(align = c("center"), columns = TRUE)
 
 ```
 
-```{r Table 1 Part 2}
+```{r Summary Table Output, fig.align="center"}
 
 # Print the table. 
 
@@ -206,8 +198,7 @@ Overall the paper essentially finds that being affected by the riot causes a dro
  Replication Statement
 \end{center}
 
-
-The replicable and essential figures/tables for my paper are Figures 4, 5, 6, 8, and 9, as well as Table 1. The online Appendix is huge, but consists of extensive robustness testing and therefore I believe they are non-essential. The other figures in my paper are made either via GIS software or are simply maps of the city (Osh, Kyrgyzstan) in question. These I could just screen shot and insert into my own work if necessary. I can replicate Figures 4, 5, 8, and 9 from my paper. I can also replicate Table 1. I currently cannot replicate Figure 6 from my paper, because the matrix they created does not work with the code they have provided. I have no way to edit this matrix without damaging the paper's findings. I am working with Alice to find a workaround on Figure 6, but my extensions are focused on Figure 5 and Table 1, so this will not prevent me from moving forward with the project. I also want to replicate one appendix figure, A.17 for my extension section. I will include it within this milestone. 
+The replicable and essential figures/tables for my paper are Figures 4, 5, 6, 8, and 9, as well as Table 1. Figures 1, 2, 3, and 7 are made either via GIS software or are simply maps of Osh. These I could just screen shot and insert into my own work if necessary. There is also an online Appendix that is huge but it mostly consists of extensive robustness testing and therefore I consider it non-essential for the paper overall. Figures 4, 5, 8, 9 and Table 1 are replicable and are shown in the Appendix of this milestone. I currently cannot replicate Figure 6 from my paper, because the matrix they created does not work with the code they have provided. I have no way to edit this matrix without damaging the paper's findings. I am working with Alice to find a workaround, but since my extensions are focused on Figure 5 and Table 1 this will not prevent me from moving forward with the project. I also want to replicate one appendix figure, A.17 for my extension section, but it relies on the same matrix data as Figure 6, so it is not replicable as of now.   
 
 \hfill\break
 
@@ -215,6 +206,12 @@ The replicable and essential figures/tables for my paper are Figures 4, 5, 6, 8,
 \begin{center}
  Extension Plans
 \end{center}
+
+I believe there are a few areas that could be expanded upon in this paper that the authors did not fully explore. An issue I have is that this study is non-observational and was published only a few months ago in late 2019, which means that there is no option to either incorporate additional data or necessarily rely on new additional literature that would suggest a weakness in the authors’ methodological approach. Even so, however, there are two areas where I feel more exploration of the data is warranted or where fundamental assumptions can be challenged. These areas would be a more robust exploration of the Kyrgyz subset of the survey data and a more in-depth exploration of prosocial confounding variables for the Uzbek data. 
+
+My immediate reaction to reading the paper was that the predominant amount of attention was paid to the Uzbek subset of the data. This is intuitive because the study is aimed at understanding victimization from ethnic riots and the ethnic riots in Osh, Kyrgyzstan revolved around the Kyrgyz ethnic majority attacking the Uzbek ethnic minority. The survey data includes 222 surveys of Kyrgyz citizens of Osh and within this amount over a third were negatively affected by the ethnic riots as well. Now obviously this amount is much less than the nearly half out of 878 Uzbeks citizens that were affected, but they form an interesting point of comparison for the study. The only comparative exploration of affected Kyrgyz prosocial behavior done by the authors was to measure their prosocial behavior via regressions using the instrumental variable. Now I am critical of this approach because their instrumental variable is non-replicable, and their instrumental variable was only a robustness test. Their key findings are from Figure 5 where they simply ran linear regressions to measure prosocial behavior of affected Uzbeks relying on the victimization variable. When they use the affected Kyrgyz to compare results, they use the instrumental variable and then compare these results to their main results, but they two are not necessarily the same. I will then rerun their Figure 5 testing but on the Kyrgyz subset of the data instead. I will also use this subset to recreate their Table 1, to see how Kyrgyz differed on the various scores and whether their prosocial behavior can be explained by confounding variables. 
+
+I also find that the author’s exploration of confounding variables for the Uzbek subset of the data is limited in its scope. They combine a variety of variables together to create their hypothetical confounders that might explain riot location, but I believe other variables should be included that would explain over prosocial behavioral scores. Namely, the use of common language and ethnicity of employer should be tested. Using a common language is a prosocial behavior that individuals opt into and this may have a strong impact on overall prosocial behavior after the riots. Also, ethnicity of one’s employer is interesting because if one’s employer is of the opposite ethnic group, this would mandate interaction with the out-group, which might generate higher prosocial behavior as well. Exploring the effect these variables have on Uzbek prosocial behavior and potentially their interaction with the victimization variable might provide some interesting insights into confounders for prosocial behavior. 
 
 
 \pagebreak
@@ -257,9 +254,35 @@ Rohner, Dominic, Mathias Thoenig, and Fabrizio Zilibotti. 2013. “Seeds of Dist
 \end{center}
 
 \hfill\break
+\hfill\break
+\hfill\break
+
+
+\begin{center}
+\textbf{Summary Table}
+```{r Summary Table Appendix Output, fig.align="center"}
+
+# Print the table. 
+
+table_data2
+```
+
+\end{center}
+
+\hfill\break
+\hfill\break
+\hfill\break
+\hfill\break
+\hfill\break
 
 
 ```{r, Figure 4}
+
+# So I figured it would be easy to replicate
+# thier Figure 4 even though they don't give
+# any replicable code. I just make some
+# columns and then use gt to make it look like
+# thier table. 
 
 f4_1 <- c("+", "-", "-", "+")
 f4_2 <- c(60, 80, 20, 100)
@@ -290,10 +313,12 @@ f4 <- data.frame(f4_1, f4_2, f4_3, f4_4) %>%
 
 ```{r Figure 4 Output, fig.align="center"}
 
+# Printing
+
 f4
 ```
 
-\hfill\break
+\pagebreak
 
 ```{r Figure 5}
 
@@ -438,7 +463,7 @@ figure5
 
 \end{center}
 
-\hfill\break
+\pagebreak
 
 
 \begin{center}
@@ -448,10 +473,9 @@ This Figure is currently non-replicable. See replication section for details.
 
 \end{center}
 
-\hfill\break
+\pagebreak
 
-
-```{r Figure 8, cache=TRUE}
+```{r Figure 8, cache=TRUE, include=FALSE}
 
 # Like I said before the scaling code doesn't change
 # in between the figures so I won't comment on it 
@@ -599,20 +623,224 @@ figure8 <- ggplot(data_combined, aes(x=V1)) +
   geom_density(bw = 0.02) +
   theme_bw() + 
   ylab("Density")  + xlab("Estimate") +     
-  theme(text = element_text(size=18)) +
+  theme(text = element_text(size=11)) +
   scale_x_continuous(limits = c(-0.2,0.2)) + 
   geom_vline(xintercept=instrument$coefficients[2]*-1, linetype=2, color = "grey") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 ```
+
+
 \begin{center}
 \textbf{Figure 8. Randomization Inference}
 
-```{r Output}
+```{r Figure 8 Output, fig.align="center"}
 
 # Time to make the actual graph. 
 
 figure8
 ```
+
 \end{center}
+
+\pagebreak
+
+
+```{r Figure 9}
+
+# They're just making affected an 
+# integer again and then shifting the
+# binary state to negative 1 and 0.
+
+data$affected <- as.integer(data$affected)
+data$affected <- data$affected - 1
+
+# Now they subset the data. 
+
+data_uzbek <- data[which(data$ethnicity=="Uzbek"),]
+
+# This bit of the paper is an exploration of whether
+# the people who were affected by the riots actually
+# had more damages than other types. So they run the 
+# OLS regressions on each type of loss. 
+
+model1 <- lm(losses_1 ~ affected, data=data_uzbek)
+model2 <- lm(losses_2 ~ affected, data=data_uzbek)
+model3 <- lm(losses_3 ~ affected, data=data_uzbek)
+model4 <- lm(losses_4 ~ affected, data=data_uzbek)
+model5 <- lm(losses_5 ~ affected, data=data_uzbek)
+
+
+# Here they just want to grab their coefficients from 
+# the regressions they ran earlier. 
+
+model1Frame <- data.frame(Variable = rownames(summary(model1)$coef),
+                          Coefficient = summary(model1)$coef[, 1],
+                          SE = summary(model1)$coef[, 2],
+                          modelName = "Car")[2,]
+model2Frame <- data.frame(Variable = rownames(summary(model2)$coef),
+                          Coefficient = summary(model2)$coef[, 1],
+                          SE = summary(model2)$coef[, 2],
+                          modelName = "TV")[2,]
+model3Frame <- data.frame(Variable = rownames(summary(model3)$coef),
+                          Coefficient = summary(model3)$coef[, 1],
+                          SE = summary(model3)$coef[, 2],
+                          modelName = "House")[2,]
+model4Frame <- data.frame(Variable = rownames(summary(model4)$coef),
+                          Coefficient = summary(model4)$coef[, 1],
+                          SE = summary(model4)$coef[, 2],
+                          modelName = "Money")[2,]
+model5Frame <- data.frame(Variable = rownames(summary(model5)$coef),
+                          Coefficient = summary(model5)$coef[, 1],
+                          SE = summary(model5)$coef[, 2],
+                          modelName = "Business")[2,]
+
+# Here they once again want to combine all thier data into one. 
+# They also want to list them in a particular order. 
+
+allModelFrame <- data.frame(rbind(model1Frame, model2Frame, model3Frame, model4Frame, model5Frame))
+allModelFrame$Variable <- c(1,2,3,4, 5)
+allModelFrame$Variable <- factor(allModelFrame$Variable, labels=c("Car", "TV", "House", "Money", "Business"))
+levels(allModelFrame$Variable) <- gsub("  ", "\n", levels(allModelFrame$Variable))
+
+# Now they want to calculat the 90 and 95 CIs. 
+
+interval1 <- -qnorm((1-0.90)/2)  # 90% multiplier
+interval2 <- -qnorm((1-0.95)/2)  # 95% multiplier
+
+# And then its another round of color setting. 
+
+myColors <- c("#000000", "#000000", "#000000", "#000000", "#000000")
+
+
+# Same graphing code from Figure 5 and 6. Refer to my comments
+# on Figure 5 for a more detailed analysis of what's happening. 
+
+figure9 <- ggplot(allModelFrame, aes(colour = as.factor(Variable))) + 
+  geom_hline(yintercept = 0, colour = gray(1/2), lty = 2) + 
+  geom_linerange(aes(x = Variable, ymin = Coefficient - SE*interval1,
+                     ymax = Coefficient + SE*interval1),
+                 lwd = 1, position = position_dodge(width = 1/2)) + 
+  geom_pointrange(aes(x = Variable, y = Coefficient, ymin = Coefficient - SE*interval2,
+                      ymax = Coefficient + SE*interval2),
+                  lwd = 1/4, position = position_dodge(width = 1/2),
+                  shape = 21, fill = "WHITE") + 
+  coord_flip(ylim = c(-0.1,0.3)) + theme_bw() + 
+  theme(legend.position="none") + 
+  #ggtitle("Cooperation among Uzbeks") +  
+  ylab("")  + xlab("") +     
+  scale_color_manual(values=myColors) +   
+  theme(text = element_text(size=11)) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+\begin{center}
+\textbf{Figure 9. Effect of Riot Destruction on Losses}
+
+```{r Figure 9 Output, fig.align='center'}
+
+# output
+
+figure9
+```
+
+\end{center}
+
+\pagebreak
+
+
+```{r Table 1, include=FALSE}
+
+# Same cleaning code that they've done
+# for all figures. Its just as.integer commands
+# and shifting the binary.
+
+data$affected <- as.integer(data$affected)
+data$affected <- data$affected - 1
+data$pd_in <- as.integer(data$pd_in)
+data$pd_out <- as.integer(data$pd_out)
+
+
+# They wanted to rename a variable here. 
+
+data$social_cap_retro <- data$leadership
+
+# Subsetting time as per usual.
+
+data_uzbek <- data[which(data$ethnicity=="Uzbek"),]
+
+# And once more they wanted to scale everything. 
+# Remind me to ask Alice to clarify what this does 
+# in simple terms. I think I get it but I want to 
+# make sure. 
+
+data_uzbek$pd_in_scale <- scale(data_uzbek$pd_in)
+data_uzbek$dg_in_scale <- scale(data_uzbek$dg_in)
+data_uzbek$pd_out_scale <- scale(data_uzbek$pd_out)
+data_uzbek$dg_out_scale <- scale(data_uzbek$dg_out)
+data_uzbek$cooperation_index <- rowSums(cbind(data_uzbek$pd_in_scale, 
+                                              data_uzbek$dg_in_scale, 
+                                              data_uzbek$pd_out_scale, 
+                                              data_uzbek$dg_out_scale), na.rm=T)/4
+
+# So many multivariate linear regressions. So this 
+# is their table info which requires the prisoner dilemma, 
+# dictator game, and cooperation index to be regressed by 
+# a bushel of variables. Here is where I'd like to do some
+# playing around when its my turn to make changes. 
+
+model1 <- lm(pd_in_scale ~ affected + economy_index + state_index + social_cap_retro + access_index + aj_vote_share, data=data_uzbek)
+model2 <- lm(dg_in_scale ~ affected + economy_index + state_index + social_cap_retro + access_index + aj_vote_share, data=data_uzbek)
+model3 <- lm(pd_out_scale ~ affected + economy_index + state_index + social_cap_retro + access_index + aj_vote_share, data=data_uzbek)
+model4 <- lm(dg_out_scale ~ affected + economy_index + state_index + social_cap_retro + access_index + aj_vote_share, data=data_uzbek)
+model5 <- lm(cooperation_index ~ affected + economy_index + state_index + social_cap_retro + access_index + aj_vote_share, data=data_uzbek)
+
+# I actually don't know why they are
+# running a summary on every model but
+# I assume they need to in order to run
+# the stargazer. 
+
+summary(model1)
+summary(model2)
+summary(model3)
+summary(model4)
+summary(model5)
+```
+
+\begin{center}
+\textbf{Table 1}
+\end{center}
+
+```{r Table 1 Stargazer, results = "asis"}
+
+# Alright so this is weird. I know they are using stargazer 
+# to make the really nice looking table in the paper. I don't know
+# how this code works though. I can't seem to replicate it myself.
+# This is something else I'll need Alice's help with. Or I just need 
+# enough time to figure out how stargazer works. 
+
+cat("\\scalebox{.55}{")
+
+stargazer(model1, model2, model3, model4, model5,
+          covariate.labels = c("Destruction", "Wealth index", "State capacity index", "Community policing index", "Accessibility index", "AJ %"),
+          dep.var.labels = c("Cooperation in Prisoner's Dilemma", "Investment in Dictator Game", "Cooperation in Prisoner's Dilemma", "Investment in Dictator Game" , "Cooperation-Index"),
+          star.char = c("*", "**", "***"),
+          title = "Table 1: Effect of Destruction on Prosocial Behavior (controlling for confounders and mobilization)",
+          star.cutoffs = c(0.05, 0.01, 0.001), type = 'latex', float = FALSE)
+
+
+cat("}") 
+```
+
+\pagebreak
+
+
+\begin{center}
+\textbf{Figure A.17}
+
+Figure A.17 is currently non-replicable. See replication section for details.
+
+
+\end{center}
+
