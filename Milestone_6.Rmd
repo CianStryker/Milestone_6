@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = FALSE)
 # Loading all libraries
 # that I'll need. 
 
+library(spdep) 
+library(tseries)
+library(spatialreg)
 library(foreign)
 library(plyr)
 library(AER)
@@ -188,7 +191,7 @@ table_data2
 
 In the authors' analyses they measure prosocial behavior by having subjects complete a prisoner's dilemma (PD) scenario and dictator’s game (DG) hypothetical to measure prosocial behavior towards both the in-group and out-group. They also create a ‘Prosociality Index’ score, which is simply a combined score of the PD and DG scores. They use these responses, which are measured numerically, to first run a series of OLS linear regressions for only Uzbeks who were affected by the riots, which is referred to as the victimization variable. They find that on average Uzbeks who were affected by the riots have lower prosocial behavior for both in and out-group members. They then run another series of regressions for affected Uzbeks, but include potential confounding variables such as wealth, state capacity of neighborhoods, community policing, accessibility, and voting record in the recent Kyrgyz election. They found, however, that only exposure to violence during the riots had consistently statistically significant effects on prosocial behavior. 
 
-The authors then want to explore an instrumental variable which was the rioter’s access to armored vehicles (APCs) to break through Uzbek barricades. During the riot, APCs were captured from the Kyrgyz military barracks by rioters to then attack Uzbek enclaves. Areas of Osh where rioters did not have access to APCs saw little to no destruction. This suggests that access to APCs might act as an exogenic assignment mechanism that explains post-riot differences across subject responses. They believe that distance to APC locations capture the ‘intent-to-treat’ effect and then create a closeness instrument by inputting subjects’ distance to APC locations. The authors run a series of new regressions where they substitute victimization for the closeness instrument and then include these regressions with their earlier, original regressions. They see both that their original results hold and that even with victimization replaced with the closeness instrument, there is still a noticeable negative effect on prosocial behavior. They follow this up with a randomization inference procedure, where they randomized potential APC locations, to see if the earlier closeness instrument effect could occur randomly. They find, however, that this is highly unlikely. 
+The authors then want to explore an instrumental variable which was the distance between subjects and armored vehicles (APCs), which were captured from the Kyrgyz military by rioters and used to break through Uzbek barricades. Areas of Osh where rioters did not have access to APCs saw little to no destruction. This suggests that access to APCs might act as an exogenic assignment mechanism that explains post-riot differences across subject responses. They believe that distance to APC locations capture the ‘intent-to-treat’ effect and then create a closeness instrument by inputting subjects’ distance to APC locations. The authors run a series of new regressions where they substitute victimization for the closeness instrument. They see that their original results hold and can now say there is a causal negative impact on prosocial behavior. They follow this up with a randomization inference procedure, where they randomized potential APC locations, to see if the earlier closeness instrument effect could occur randomly. They find, however, that this is highly unlikely. 
 
 Overall the paper essentially finds that being affected by the riot causes a drop in prosocial behavior towards both the in-group and out-group. They then test the robustness of these results through potential confounding variables and an instrument variable. They find that their original findings hold throughout these robustness tests. At the end of the paper they explore why in-group prosocial behavior is negatively affected qualitatively and argue that disappointment and suspicion may explain the negatively affected in-group prosocial behavior. 
 
@@ -199,7 +202,7 @@ Overall the paper essentially finds that being affected by the riot causes a dro
  Replication Statement
 \end{center}
 
-The replicable and essential figures/tables for my paper are Figures 4, 5, 6, 8, and 9, as well as Table 1. Figures 1, 2, 3, and 7 are made either via GIS software or are simply maps of Osh. These I could just screen shot and insert into my own work if necessary. There is also an online Appendix that is huge but it mostly consists of extensive robustness testing and therefore I consider it non-essential for the paper overall. Figures 4, 5, 8, 9 and Table 1 are replicable and are shown in the Appendix of this milestone. I currently cannot replicate Figure 6 from my paper, because the matrix they created does not work with the code they have provided. I have no way to edit this matrix without damaging the paper's findings. I am working with Alice to find a workaround, but since my extensions are focused on Figure 5 and Table 1 this will not prevent me from moving forward with the project. 
+The replicable and essential figures/tables for my paper are Figures 4, 5, 6, 8, and 9, as well as Table 1. Figures 1, 2, 3, and 7 are made either via GIS software or are simply maps of Osh. These I could just screen shot and insert into my own work if necessary. There is also an extensive online Appendix, but it mostly consists of extensive robustness testing and therefore I consider it non-essential for the paper overall. Figures 4, 5, 8, 9 and Table 1 are fully replicable and are shown in the Appendix of this milestone. I cannot currently replicate all of Figure 6 from my paper.  Figure 6 has three regression series using an instrumental variable. Two of the regression series rely on the survey data they have provided, but a third regression relies on spatial weights. These spatial weights are included in a csv file, but when loaded into my rmd file, they fail to create the square matrix that the code requires. I have worked with Alice on this issue and we have not been able to reproduce their work, but I have reached out to them and hopefully they will clarify the issue. I have replicated two of the three regression series, however, which capture the overall point of this particular model and this can be seen in the Appendix as well. I also want to replicate one appendix figure, A.17 for my extension section, but it relies on the same spatial weights as Figure 6, so it is not replicable as of now.  
 
 \hfill\break
 
@@ -467,10 +470,192 @@ figure5
 \pagebreak
 
 
+```{r Figure 6}
+
+# Here is the typical prep work the authors always do
+
+data$affected <- as.integer(data$affected)
+data$affected <- data$affected - 1
+data$pd_in <- as.integer(data$pd_in)
+data$pd_out <- as.integer(data$pd_out)
+
+
+# Also renaming
+
+data$distance <- data$apc_min_distance
+
+data$social_cap_retro <- data$leadership
+
+data_uzbek <- data[which(data$ethnicity=="Uzbek"),]
+
+# Scaling
+
+data_uzbek$pd_in_scale <- scale(data_uzbek$pd_in)
+data_uzbek$dg_in_scale <- scale(data_uzbek$dg_in)
+data_uzbek$pd_out_scale <- scale(data_uzbek$pd_out)
+data_uzbek$dg_out_scale <- scale(data_uzbek$dg_out)
+data_uzbek$cooperation_index <- rowSums(cbind(data_uzbek$pd_in_scale, 
+                                              data_uzbek$dg_in_scale, 
+                                              data_uzbek$pd_out_scale, 
+                                              data_uzbek$dg_out_scale), na.rm=T)/4
+# More renaming
+
+data_uzbek$distance <- 1-data_uzbek$apc_min_distance
+dataAgg <- aggregate(data_uzbek[,c("affected", "distance")], 
+                     list(data_uzbek$id_psu),
+                     mean)
+
+# Now they are setting theirr two stages for the IV test
+
+first_stage_ind <- lm(affected ~ distance, data=data_uzbek)
+first_stage_psu <- lm(affected ~ distance, data=dataAgg)
+
+# First rounds of regressions with ivreg and lm
+
+model11 <- lm(pd_in_scale ~ distance , data=data_uzbek)
+model12 <- ivreg(pd_in_scale ~ affected | distance, data = data_uzbek)
+model21 <- lm(dg_in_scale ~ distance , data=data_uzbek)
+model22 <- ivreg(dg_in_scale ~ affected | distance , data = data_uzbek)
+model31 <- lm(pd_out_scale ~ distance , data=data_uzbek)
+model32 <- ivreg(pd_out_scale ~ affected  | distance , data = data_uzbek)
+model41 <- lm(dg_out_scale ~ distance , data=data_uzbek)
+model42 <- ivreg(dg_out_scale ~ affected  | distance , data = data_uzbek)
+model51 <- lm(cooperation_index ~ distance , data=data_uzbek)
+model52 <- ivreg(cooperation_index ~ affected  | distance , data = data_uzbek)
+
+
+# Agreggating
+
+dataAgg <- aggregate(data_uzbek[,c("apc_min_distance", "distance", "pd_in_scale", "dg_in_scale", 
+                                   "pd_out_scale", "dg_out_scale", "cooperation_index", "affected", 
+                                   "economy_index", "state_index", "social_cap_retro")], 
+                     list(data_uzbek$id_psu),
+                     mean)
+# Even more Renaming
+
+names(dataAgg)[1] <- "psu"
+
+
+# Dropping NAs
+
+dataAgg <- dataAgg[!is.na(dataAgg$social_cap_retro),] 
+
+# Normal regressions
+
+
+model1 <- lm(pd_in_scale ~ distance , data=dataAgg)
+model2 <- lm(dg_in_scale ~ distance , data=dataAgg)
+model3 <- lm(pd_out_scale ~ distance , data=dataAgg)
+model4 <- lm(dg_out_scale ~ distance , data=dataAgg)
+model5 <- lm(cooperation_index ~ distance , data=dataAgg)
+
+# Making the model frames for the graph later.
+
+model11Frame <- data.frame(Variable = rownames(summary(model11)$coef),
+                           Coefficient = summary(model11)$coef[, 1],
+                           SE = summary(model11)$coef[, 2],
+                           modelName = "PD ingroup")[2,]
+model21Frame <- data.frame(Variable = rownames(summary(model21)$coef),
+                           Coefficient = summary(model21)$coef[, 1],
+                           SE = summary(model21)$coef[, 2],
+                           modelName = "DG ingroup")[2,]
+model31Frame <- data.frame(Variable = rownames(summary(model31)$coef),
+                           Coefficient = summary(model31)$coef[, 1],
+                           SE = summary(model31)$coef[, 2],
+                           modelName = "PD outgroup")[2,]
+model41Frame <- data.frame(Variable = rownames(summary(model41)$coef),
+                           Coefficient = summary(model41)$coef[, 1],
+                           SE = summary(model41)$coef[, 2],
+                           modelName = "DG outgroup")[2,]
+model51Frame <- data.frame(Variable = rownames(summary(model51)$coef),
+                           Coefficient = summary(model51)$coef[, 1],
+                           SE = summary(model51)$coef[, 2],
+                           modelName = "Index")[2,]
+model12Frame <- data.frame(Variable = rownames(summary(model12)$coef),
+                           Coefficient = summary(model12)$coef[, 1],
+                           SE = summary(model12)$coef[, 2],
+                           modelName = "PD ingroup")[2,]
+model22Frame <- data.frame(Variable = rownames(summary(model22)$coef),
+                           Coefficient = summary(model22)$coef[, 1],
+                           SE = summary(model22)$coef[, 2],
+                           modelName = "DG ingroup")[2,]
+model32Frame <- data.frame(Variable = rownames(summary(model32)$coef),
+                           Coefficient = summary(model32)$coef[, 1],
+                           SE = summary(model32)$coef[, 2],
+                           modelName = "PD outgroup")[2,]
+model42Frame <- data.frame(Variable = rownames(summary(model42)$coef),
+                           Coefficient = summary(model42)$coef[, 1],
+                           SE = summary(model42)$coef[, 2],
+                           modelName = "DG outgroup")[2,]
+model52Frame <- data.frame(Variable = rownames(summary(model52)$coef),
+                           Coefficient = summary(model52)$coef[, 1],
+                           SE = summary(model52)$coef[, 2],
+                           modelName = "Index")[2,]
+
+# So they wanted to bring all models done for
+# the original data. And then arrange the order
+# using factor. 
+
+allModelFrame1 <- data.frame(rbind(model11Frame, model21Frame, model31Frame, model41Frame, model51Frame))
+allModelFrame1$Variable <- c(1,2,3,4,5)
+allModelFrame1$Variable <- factor(allModelFrame1$Variable, labels=c("Prisoner's Dilemma  Ingroup", "Dictator Game  Ingroup", "Prisoner's Dilemma  Outgroup", "Dictator Game  Outgroup", "Prosociality-  index"))
+levels(allModelFrame1$Variable) <- gsub("  ", "\n", levels(allModelFrame1$Variable))
+
+
+# So now they want to combine all the models that have the spatial 
+# component to them. 
+
+allModelFrame2 <- data.frame(rbind(model12Frame, model22Frame, model32Frame, model42Frame, model52Frame))
+allModelFrame2$Variable <- c(1,2,3,4,5)
+allModelFrame2$Variable <- factor(allModelFrame2$Variable, labels=c("Prisoner's Dilemma  Ingroup", "Dictator Game  Ingroup", "Prisoner's Dilemma  Outgroup", "Dictator Game  Outgroup", "Prosociality-  index"))
+levels(allModelFrame2$Variable) <- gsub("  ", "\n", levels(allModelFrame2$Variable))
+
+
+# allModelFram <- rbind(allModelFrame1, allModelFrame2, allModelFrame3)
+# allModelFram$matrix_style <- rep(c("Instrument", "2SLS", "Instrument (SAM)"),each=5)
+
+
+allModelFram <- rbind(allModelFrame1, allModelFrame2)
+allModelFram$test <- rep(c("Instrument", "Instrument", "Instrument", "Instrument", "Instrument", "2SLS", "2SLS", "2SLS", "2SLS", "2SLS"))
+
+
+interval1 <- -qnorm((1-0.90)/2)  # 90% multiplier
+interval2 <- -qnorm((1-0.95)/2)  # 95% multiplier
+
+
+# They set up their dodge position for the graph.
+
+pd = position_dodge(0.5)
+
+
+# Typical ggplot code.
+
+figure6 <- ggplot(allModelFram, aes(shape=test)) + 
+  geom_hline(yintercept = 0, colour = gray(1/2), lty = 2) + 
+  geom_linerange(aes(x = Variable, ymin = Coefficient - SE*interval1,
+                     ymax = Coefficient + SE*interval1),
+                 lwd = 1, position = pd) + 
+  geom_linerange(aes(x = Variable, ymin = Coefficient - SE*interval2,
+                     ymax = Coefficient + SE*interval2),
+                 lwd = 1/4, position = pd) + 
+  geom_point(aes(x = Variable, y = Coefficient, shape = test),
+             position = pd,fill = "WHITE", size = 3) + 
+  coord_flip(ylim = c(-0.95,0.22)) + theme_bw() + 
+  theme(legend.position="bottom") + 
+  scale_shape_manual(values = c(23, 24, 25), name ="") +
+  ylab("")  + xlab("") +     
+  theme(text = element_text(size=18))
+```
+
 \begin{center}
 \textbf{Figure 6.  Effect of Riot Destruction on Prosocial Behavior (IV)}
 
-This Figure is currently non-replicable. See replication section for details. 
+```{r Figure 6 Output, fig.align='center'}
+
+# Printing
+
+figure6
+```
 
 \end{center}
 
@@ -834,5 +1019,15 @@ stargazer(model1, model2, model3, model4, model5,
 cat("}") 
 ```
 
+\pagebreak
+
+\begin{center}
+\textbf{Figure A.17  Effect of Riot Destruction on Prosocial Behavior (Kyrgyz Sample)}
+
+\hfill\break
+\hfill\break
 
 
+This Figure is currently non-replicable. See replication section for details. 
+
+\end{center}
